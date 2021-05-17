@@ -40,7 +40,15 @@ func UpFixSequences(tx *sql.Tx) error {
 
 		-- Use the new syncapi_receipts_id sequence.
 		CREATE SEQUENCE IF NOT EXISTS syncapi_receipt_id;
-		ALTER SEQUENCE IF EXISTS syncapi_receipt_id RESTART WITH 1;
+		
+		-- setval(seq, 1, false) is the same as ALTER SEQUENCE RESTART WITH 1
+		-- however, it fails if the sequence does not exist.
+		-- ALTER SEQUENCE IF EXISTS syncapi_receipt_id RESTART WITH 1;
+		IF EXISTS (SELECT 0 FROM pg_class where relname = 'syncapi_receipt_id' )
+		THEN
+			SELECT setval(syncapi_receipt_id, 1, false);
+		END IF;
+
 		ALTER TABLE syncapi_receipts ALTER COLUMN id SET DEFAULT nextval('syncapi_receipt_id');
 	`)
 	if err != nil {

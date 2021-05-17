@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS roomserver_events (
 const insertEventSQL = "" +
 	"INSERT INTO roomserver_events (room_nid, event_type_nid, event_state_key_nid, event_id, reference_sha256, auth_event_nids, depth, is_rejected)" +
 	" VALUES ($1, $2, $3, $4, $5, $6, $7, $8)" +
-	" ON CONFLICT ON CONSTRAINT roomserver_event_id_unique" +
+	" ON CONFLICT (event_id)" +
 	" DO NOTHING" +
 	" RETURNING event_nid, state_snapshot_nid"
 
@@ -92,11 +92,13 @@ const bulkSelectStateEventByIDSQL = "" +
 // Bulk look up of events by event NID, optionally filtering by the event type
 // or event state key NIDs if provided. (The CARDINALITY check will return true
 // if the provided arrays are empty, ergo no filtering).
+// (COALESCE(ARRAY_LENGTH($2::bigint[], 1), 0) == CARDINALITY(ARRAY_LENGTH($2::bigint[])
+// for 1 dimensional arrays. Cardinality however is not supported by CockroachDB
 const bulkSelectStateEventByNIDSQL = "" +
 	"SELECT event_type_nid, event_state_key_nid, event_nid FROM roomserver_events" +
 	" WHERE event_nid = ANY($1)" +
-	" AND (CARDINALITY($2::bigint[]) = 0 OR event_type_nid = ANY($2))" +
-	" AND (CARDINALITY($3::bigint[]) = 0 OR event_state_key_nid = ANY($3))" +
+	" AND (COALESCE(ARRAY_LENGTH($2::bigint[], 1), 0) = 0 OR event_type_nid = ANY($2::bigint[]))" +
+	" AND (COALESCE(ARRAY_LENGTH($3::bigint[], 1), 0) = 0 OR event_state_key_nid = ANY($3::bigint[]))" +
 	" ORDER BY event_type_nid, event_state_key_nid ASC"
 
 const bulkSelectStateAtEventByIDSQL = "" +

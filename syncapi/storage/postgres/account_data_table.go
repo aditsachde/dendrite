@@ -52,15 +52,15 @@ CREATE UNIQUE INDEX IF NOT EXISTS syncapi_account_data_id_idx ON syncapi_account
 
 const insertAccountDataSQL = "" +
 	"INSERT INTO syncapi_account_data_type (user_id, room_id, type) VALUES ($1, $2, $3)" +
-	" ON CONFLICT ON CONSTRAINT syncapi_account_data_unique" +
+	" ON CONFLICT (user_id, room_id, type)" +
 	" DO UPDATE SET id = nextval('syncapi_stream_id')" +
 	" RETURNING id"
 
 const selectAccountDataInRangeSQL = "" +
 	"SELECT room_id, type FROM syncapi_account_data_type" +
 	" WHERE user_id = $1 AND id > $2 AND id <= $3" +
-	" AND ( $4::text[] IS NULL OR     type LIKE ANY($4)  )" +
-	" AND ( $5::text[] IS NULL OR NOT(type LIKE ANY($5)) )" +
+	" AND ( $4::text[] IS NULL OR     type LIKE ANY($4::text[])  )" +
+	" AND ( $5::text[] IS NULL OR NOT(type LIKE ANY($5::text[])) )" +
 	" ORDER BY id ASC LIMIT $6"
 
 const selectMaxAccountDataIDSQL = "" +

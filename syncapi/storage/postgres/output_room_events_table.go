@@ -75,7 +75,7 @@ const insertEventSQL = "" +
 	"INSERT INTO syncapi_output_room_events (" +
 	"room_id, event_id, headered_event_json, type, sender, contains_url, add_state_ids, remove_state_ids, session_id, transaction_id, exclude_from_sync" +
 	") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) " +
-	"ON CONFLICT ON CONSTRAINT syncapi_event_id_idx DO UPDATE SET exclude_from_sync = (excluded.exclude_from_sync AND $11) " +
+	"ON CONFLICT (event_id) DO UPDATE SET exclude_from_sync = (excluded.exclude_from_sync AND $11) " +
 	"RETURNING id"
 
 const selectEventsSQL = "" +
@@ -84,28 +84,28 @@ const selectEventsSQL = "" +
 const selectRecentEventsSQL = "" +
 	"SELECT event_id, id, headered_event_json, session_id, exclude_from_sync, transaction_id FROM syncapi_output_room_events" +
 	" WHERE room_id = $1 AND id > $2 AND id <= $3" +
-	" AND ( $4::text[] IS NULL OR     sender  = ANY($4)  )" +
-	" AND ( $5::text[] IS NULL OR NOT(sender  = ANY($5)) )" +
-	" AND ( $6::text[] IS NULL OR     type LIKE ANY($6)  )" +
-	" AND ( $7::text[] IS NULL OR NOT(type LIKE ANY($7)) )" +
+	" AND ( $4::text[] IS NULL OR     sender  = ANY($4::text[])  )" +
+	" AND ( $5::text[] IS NULL OR NOT(sender  = ANY($5::text[])) )" +
+	" AND ( $6::text[] IS NULL OR     type LIKE ANY($6::text[])  )" +
+	" AND ( $7::text[] IS NULL OR NOT(type LIKE ANY($7::text[])) )" +
 	" ORDER BY id DESC LIMIT $8"
 
 const selectRecentEventsForSyncSQL = "" +
 	"SELECT event_id, id, headered_event_json, session_id, exclude_from_sync, transaction_id FROM syncapi_output_room_events" +
 	" WHERE room_id = $1 AND id > $2 AND id <= $3 AND exclude_from_sync = FALSE" +
-	" AND ( $4::text[] IS NULL OR     sender  = ANY($4)  )" +
-	" AND ( $5::text[] IS NULL OR NOT(sender  = ANY($5)) )" +
-	" AND ( $6::text[] IS NULL OR     type LIKE ANY($6)  )" +
-	" AND ( $7::text[] IS NULL OR NOT(type LIKE ANY($7)) )" +
+	" AND ( $4::text[] IS NULL OR     sender  = ANY($4::text[])  )" +
+	" AND ( $5::text[] IS NULL OR NOT(sender  = ANY($5::text[])) )" +
+	" AND ( $6::text[] IS NULL OR     type LIKE ANY($6::text[])  )" +
+	" AND ( $7::text[] IS NULL OR NOT(type LIKE ANY($7::text[])) )" +
 	" ORDER BY id DESC LIMIT $8"
 
 const selectEarlyEventsSQL = "" +
 	"SELECT event_id, id, headered_event_json, session_id, exclude_from_sync, transaction_id FROM syncapi_output_room_events" +
 	" WHERE room_id = $1 AND id > $2 AND id <= $3" +
-	" AND ( $4::text[] IS NULL OR     sender  = ANY($4)  )" +
-	" AND ( $5::text[] IS NULL OR NOT(sender  = ANY($5)) )" +
-	" AND ( $6::text[] IS NULL OR     type LIKE ANY($6)  )" +
-	" AND ( $7::text[] IS NULL OR NOT(type LIKE ANY($7)) )" +
+	" AND ( $4::text[] IS NULL OR     sender  = ANY($4::text[])  )" +
+	" AND ( $5::text[] IS NULL OR NOT(sender  = ANY($5::text[])) )" +
+	" AND ( $6::text[] IS NULL OR     type LIKE ANY($6::text[])  )" +
+	" AND ( $7::text[] IS NULL OR NOT(type LIKE ANY($7::text[])) )" +
 	" ORDER BY id ASC LIMIT $8"
 
 const selectMaxEventIDSQL = "" +
@@ -119,11 +119,11 @@ const selectStateInRangeSQL = "" +
 	"SELECT id, headered_event_json, exclude_from_sync, add_state_ids, remove_state_ids" +
 	" FROM syncapi_output_room_events" +
 	" WHERE (id > $1 AND id <= $2) AND (add_state_ids IS NOT NULL OR remove_state_ids IS NOT NULL)" +
-	" AND ( $3::text[] IS NULL OR     sender  = ANY($3)  )" +
-	" AND ( $4::text[] IS NULL OR NOT(sender  = ANY($4)) )" +
-	" AND ( $5::text[] IS NULL OR     type LIKE ANY($5)  )" +
-	" AND ( $6::text[] IS NULL OR NOT(type LIKE ANY($6)) )" +
-	" AND ( $7::bool IS NULL   OR     contains_url = $7  )" +
+	" AND ( $3::text[] IS NULL OR     sender  = ANY($3::text[])  )" +
+	" AND ( $4::text[] IS NULL OR NOT(sender  = ANY($4::text[])) )" +
+	" AND ( $5::text[] IS NULL OR     type LIKE ANY($5::text[])  )" +
+	" AND ( $6::text[] IS NULL OR NOT(type LIKE ANY($6::text[])) )" +
+	" AND ( $7::bool IS NULL   OR     contains_url = $7::bool  )" +
 	" ORDER BY id ASC" +
 	" LIMIT $8"
 

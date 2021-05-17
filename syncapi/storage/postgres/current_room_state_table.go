@@ -65,7 +65,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS syncapi_current_room_state_eventid_idx ON sync
 const upsertRoomStateSQL = "" +
 	"INSERT INTO syncapi_current_room_state (room_id, event_id, type, sender, contains_url, state_key, headered_event_json, membership, added_at)" +
 	" VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)" +
-	" ON CONFLICT ON CONSTRAINT syncapi_room_state_unique" +
+	" ON CONFLICT (room_id, type, state_key)" +
 	" DO UPDATE SET event_id = $2, sender=$4, contains_url=$5, headered_event_json = $7, membership = $8, added_at = $9"
 
 const deleteRoomStateByEventIDSQL = "" +
@@ -79,11 +79,11 @@ const selectRoomIDsWithMembershipSQL = "" +
 
 const selectCurrentStateSQL = "" +
 	"SELECT event_id, headered_event_json FROM syncapi_current_room_state WHERE room_id = $1" +
-	" AND ( $2::text[] IS NULL OR     sender  = ANY($2)  )" +
-	" AND ( $3::text[] IS NULL OR NOT(sender  = ANY($3)) )" +
-	" AND ( $4::text[] IS NULL OR     type LIKE ANY($4)  )" +
-	" AND ( $5::text[] IS NULL OR NOT(type LIKE ANY($5)) )" +
-	" AND ( $6::bool IS NULL   OR     contains_url = $6  )" +
+	" AND ( $2::text[] IS NULL OR     sender  = ANY($2::text[])  )" +
+	" AND ( $3::text[] IS NULL OR NOT(sender  = ANY($3::text[])) )" +
+	" AND ( $4::text[] IS NULL OR     type LIKE ANY($4::text[])  )" +
+	" AND ( $5::text[] IS NULL OR NOT(type LIKE ANY($5::text[])) )" +
+	" AND ( $6::bool IS NULL   OR     contains_url = $6::bool  )" +
 	" AND (event_id = ANY($7)) IS NOT TRUE" +
 	" LIMIT $8"
 
